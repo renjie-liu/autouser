@@ -11,6 +11,7 @@ import anthropic
 
 from autouser import affect
 from autouser.cognitive.claude_code_provider import ClaudeCodeProvider
+from autouser.cognitive.codex_provider import CodexProvider
 from autouser.cognitive.models import (
     ActionIntent,
     ActionType,
@@ -32,10 +33,11 @@ logger = logging.getLogger(__name__)
 # Default models per provider.
 # Anthropic model IDs are bare aliases — date-suffixed variants like
 # "claude-sonnet-4-6-20250514" do not exist and 404 at call time.
-_DEFAULT_MODELS = {
+_DEFAULT_MODELS: dict[str, str | None] = {
     "anthropic": "claude-sonnet-4-6",
     "gemini": "gemini-2.0-flash",
     "claude_code": "sonnet",
+    "codex": None,  # defer to codex's own config (~/.codex/config.toml); no AutoUser default
 }
 
 
@@ -221,6 +223,7 @@ class CognitiveEngine:
         self._client = None
         self._gemini_client = None
         self._claude_code_client: ClaudeCodeProvider | None = None
+        self._codex_client: CodexProvider | None = None
         if self.provider == "gemini":
             from google import genai
             self._gemini_client = genai.Client(
@@ -228,6 +231,8 @@ class CognitiveEngine:
             )
         elif self.provider == "claude_code":
             self._claude_code_client = ClaudeCodeProvider(model=self.model)
+        elif self.provider == "codex":
+            self._codex_client = CodexProvider(model=self.model)
         else:
             self._client = anthropic.AsyncAnthropic()
 
@@ -326,6 +331,11 @@ class CognitiveEngine:
             # contexts. `claude -p` has no separate system_prompt flag.
             combined = f"{system_prompt}\n\n---\n\n{user_prompt}"
             return await self._claude_code_client.complete(combined, schema=schema)
+        elif self.provider == "codex":
+            if self._codex_client is None:
+                raise RuntimeError("codex provider selected but client is None")
+            combined = f"{system_prompt}\n\n---\n\n{user_prompt}"
+            return await self._codex_client.complete(combined, schema=schema)
         else:
             # Structure system prompt for prompt caching.
             # Mark the entire system block as cacheable — Anthropic will
