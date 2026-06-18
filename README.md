@@ -55,15 +55,17 @@ export AUTOUSER_BROWSER_EXECUTABLE=/path/to/cached/chrome
 
 ## LLM providers
 
-The cognitive engine supports three providers. Auto-detection order (CLI):
+The cognitive engine supports four providers. Auto-detection order (CLI):
 explicit `--provider` flag → `AUTOUSER_PROVIDER` env → `ANTHROPIC_API_KEY` →
-`GEMINI_API_KEY` → local `claude` CLI on PATH.
+`GEMINI_API_KEY` → local `claude` CLI on PATH. (`codex` is opt-in only,
+never auto-selected, mirroring `claude_code`.)
 
 | Provider | Needs | Notes |
 |----------|-------|-------|
 | `anthropic` | `ANTHROPIC_API_KEY` | Default model `claude-sonnet-4-6`; prompt caching enabled |
 | `gemini` | `GEMINI_API_KEY` | Free-tier rate-limit pacing built in |
 | `claude_code` | `claude` CLI installed + authenticated | **No API key needed** — uses your Claude subscription via the local CLI. One subprocess per plan/reflect call; concurrent spawns capped by `AUTOUSER_CLAUDE_CODE_MAX_SPAWNS` (default 1), per-call timeout by `AUTOUSER_CLAUDE_CODE_TIMEOUT` (default 120s) |
+| `codex` | `codex` CLI installed + authenticated | **No API key needed** — uses your OpenAI/Codex subscription via the local `codex` CLI (`codex exec`, read-only sandbox). Opt-in via `--provider codex`; model defers to your codex config. Concurrency capped by `AUTOUSER_CODEX_MAX_SPAWNS` (default 1), per-call timeout `AUTOUSER_CODEX_TIMEOUT` (default 120s) |
 
 When using the library directly (not the CLI), `claude_code` is opt-in via
 `AUTOUSER_PROVIDER=claude_code` or `CognitiveEngine(..., provider="claude_code")` —
