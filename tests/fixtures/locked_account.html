@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- INVARIANT: #error-message text must be byte-identical across all submits.
+     The dwell-loop signature is (page_url, error_text); any variance breaks
+     the consecutive-failure match and the test fails for the wrong reason.
+     Do not add timestamps, retry counters, or any other dynamic content. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Login</title>
+</head>
+<body>
+  <main>
+    <h1>Login</h1>
+    <form id="login-form">
+      <label>Username <input id="username" name="username" type="text"></label>
+      <label>Password <input id="password" name="password" type="password"></label>
+      <button id="submit-login" type="submit">Login</button>
+    </form>
+    <div id="error-message" role="alert" aria-live="polite"></div>
+  </main>
+
+  <script>
+    // Form submission shows a fixed locked-account error.
+    // Identical text on every submit — required for dwell-loop signature stability.
+    document.getElementById('login-form').addEventListener('submit', function (event) {
+      event.preventDefault();
+      document.getElementById('error-message').textContent =
+        'Epic sadface: Sorry, this user has been locked out.';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+# Expected friction findings per persona for each fixture pattern.
+# Used by test_fixture.py to assert persona differentiation.
+#
+# Predicates use tag#id format matching _DOM_SUMMARY_JS output.
+# Elements must be LANDMARK or INTERACTIVE to appear in dom_summary.
+
+patterns:
+  icon_button:
+    description: "Unlabeled icon-only primary CTA — no visible label or aria-label"
+    success_predicate:
+      selector_present: "section#pattern-icon"
+      text_contains: "Submitted!"
+    expected:
+      maria:
+        # Maria (low tech literacy) cannot identify unlabeled icon as primary action
+        friction_count_min: 1
+        categories: ["labeling"]
+        severities: ["high"]
+      jake:
+        # Jake (tech-savvy) recognizes common icon patterns
+        friction_count_min: 0
+        categories: []
+
+  swapped_buttons:
+    description: "Continue/Cancel in reversed positions"
+    success_predicate:
+      selector_present: "section#pattern-swap"
+      text_contains: "Continued!"
+    expected:
+      maria:
+        # Maria relies on positional convention (primary right) — likely clicks Cancel
+        friction_count_min: 1
+        categories: ["layout"]
+        severities: ["medium"]
+      jake:
+        # Jake reads labels, not positions
+        friction_count_min: 0
+        categories: []
+
+  phone_mismatch:
+    description: "Placeholder shows (555) 123-4567 but validation requires E.164 (+1XXXXXXXXXX)"
+    success_predicate:
+      selector_present: "section#pattern-phone"
+      text_contains: "Phone saved!"
+    expected:
+      maria:
+        # Maria follows placeholder format, gets error, retries — error recovery friction
+        friction_count_min: 1
+        categories: ["error_recovery"]
+        severities: ["high"]
+      jake:
+        # Jake may also hit this — placeholder/validation mismatch affects all users
+        friction_count_min: 1
+        categories: ["error_recovery"]
+        severities: ["medium"]
+
+  disabled_look_cta:
+    description: "Functional button styled to look disabled (greyed out)"
+    success_predicate:
+      selector_present: "section#pattern-disabled"
+      text_contains: "It worked!"
+    expected:
+      maria:
+        # Maria skips greyed-out buttons — doesn't attempt interaction
+        friction_count_min: 1
+        categories: ["feedback"]
+        severities: ["high"]
+      jake:
+        # Jake tries anyway or inspects element state
+        friction_count_min: 0
+        categories: []
+
+  silent_success:
+    description: "Save persists with no visible confirmation — silent success canonical pattern"
+    success_predicate:
+      selector_present: "section#save-confirmed"
+    expected:
+      maria:
+        # Maria doesn't recognize success — triggers SILENT_SUCCESS divergence finding
+        feedback_subtype: "silent_success"
+        friction_count_min: 1
+        categories: ["feedback"]
+        severities: ["medium"]
+      jake:
+        # Jake infers success from DOM state change or lack of error
+        friction_count_min: 0
+        categories: []

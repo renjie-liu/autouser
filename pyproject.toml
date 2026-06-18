@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autouser"
+version = "0.1.0"
+description = "Simulate realistic user behavior for web app testing and usability evaluation"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{ name = "Renjie Liu" }]
+keywords = [
+    "usability-testing",
+    "llm",
+    "playwright",
+    "browser-automation",
+    "personas",
+    "qa",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "playwright>=1.40",
+    "anthropic>=0.40",
+    "google-genai>=1.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+]
+
+[project.scripts]
+autouser = "autouser.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/renjie-liu/autouser"
+Repository = "https://github.com/renjie-liu/autouser"
+Issues = "https://github.com/renjie-liu/autouser/issues"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

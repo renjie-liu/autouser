@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friction Fixture — 5 UX Anti-Patterns</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; background: #f8f9fa; }
+    h1 { font-size: 1.4rem; margin-bottom: 1.5rem; }
+    .pattern { border: 1px solid #dee2e6; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; background: #fff; }
+    .pattern h2 { font-size: 1rem; color: #495057; margin-top: 0; }
+    .btn { padding: 0.5rem 1.2rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-primary { background: #0d6efd; color: #fff; }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-disabled-look { background: #ced4da; color: #868e96; }
+    input { padding: 0.4rem 0.8rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.9rem; }
+    .error-msg { color: #dc3545; font-size: 0.85rem; margin-top: 0.3rem; display: none; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Friction Fixture Page</h1>
+
+  <!-- Pattern 1: Unlabeled icon-only primary CTA -->
+  <section id="pattern-icon" class="pattern">
+    <h2>Pattern 1: Unlabeled Icon Button</h2>
+    <p>The primary action uses an icon with no visible label or aria-label.</p>
+    <button class="btn btn-primary" id="icon-submit" onclick="document.getElementById('icon-result').textContent = 'Submitted!'">
+      &#x2714;
+    </button>
+    <span id="icon-result"></span>
+  </section>
+
+  <!-- Pattern 2: Positionally-swapped Continue/Cancel -->
+  <section id="pattern-swap" class="pattern">
+    <h2>Pattern 2: Swapped Button Order</h2>
+    <p>Continue and Cancel are in reversed positions (Cancel left, Continue right — opposite of convention).</p>
+    <nav id="swap-actions" role="navigation">
+      <button class="btn btn-secondary" id="swap-cancel" onclick="document.getElementById('swap-result').textContent = 'Cancelled.'">Cancel</button>
+      <button class="btn btn-primary" id="swap-continue" onclick="document.getElementById('swap-result').textContent = 'Continued!'">Continue</button>
+    </nav>
+    <span id="swap-result"></span>
+  </section>
+
+  <!-- Pattern 3: Placeholder vs E.164 format mismatch -->
+  <section id="pattern-phone" class="pattern">
+    <h2>Pattern 3: Placeholder / Validation Mismatch</h2>
+    <p>Placeholder says "(555) 123-4567" but validation requires E.164 format (+15551234567).</p>
+    <form id="phone-form" onsubmit="return validatePhone()">
+      <input type="tel" id="phone-input" placeholder="(555) 123-4567" aria-label="Phone number">
+      <button type="submit" class="btn btn-primary" id="phone-submit">Submit</button>
+      <p class="error-msg" id="phone-error">Invalid format. Use +1XXXXXXXXXX.</p>
+    </form>
+    <span id="phone-result"></span>
+  </section>
+
+  <!-- Pattern 4: Primary CTA styled identical to disabled state -->
+  <section id="pattern-disabled" class="pattern">
+    <h2>Pattern 4: Disabled-Looking Active Button</h2>
+    <p>This button is fully functional but styled to look disabled.</p>
+    <button class="btn btn-disabled-look" id="disabled-look-btn" onclick="document.getElementById('disabled-result').textContent = 'It worked!'">
+      Save Changes
+    </button>
+    <span id="disabled-result"></span>
+  </section>
+
+  <!-- Pattern 5: Silent-success Save flow -->
+  <section id="pattern-silent" class="pattern">
+    <h2>Pattern 5: Silent Success</h2>
+    <p>Click Save to persist. No toast, no banner, no visible confirmation.</p>
+    <form id="silent-form">
+      <input type="text" id="silent-name" placeholder="Your name" aria-label="Name" value="Test User">
+      <button type="button" class="btn btn-primary" id="silent-save" onclick="silentSave()">Save</button>
+    </form>
+    <!-- Success state: hidden section revealed after save, no visual cue -->
+    <section id="save-confirmed" class="hidden" role="status">
+      <span>Data persisted.</span>
+    </section>
+  </section>
+
+  <script>
+    function validatePhone() {
+      var phone = document.getElementById('phone-input').value;
+      var e164 = /^\+1\d{10}$/;
+      if (!e164.test(phone)) {
+        document.getElementById('phone-error').style.display = 'block';
+        return false;
+      }
+      document.getElementById('phone-error').style.display = 'none';
+      document.getElementById('phone-result').textContent = 'Phone saved!';
+      return false;
+    }
+
+    function silentSave() {
+      // Persist silently — no toast, no banner change, no URL change.
+      // Only a hidden section becomes visible (but styled to be invisible to
+      // a non-technical user scanning the page).
+      // Uses opacity:0 + height:0 instead of display:none so the element
+      // stays in the DOM layout (offsetParent != null) and appears in
+      // _DOM_SUMMARY_JS output without the [hidden] suffix.
+      var confirmed = document.getElementById('save-confirmed');
+      confirmed.classList.remove('hidden');
+      confirmed.style.opacity = '0';
+      confirmed.style.height = '0';
+      confirmed.style.overflow = 'hidden';
+    }
+  </script>
+</body>
+</html>

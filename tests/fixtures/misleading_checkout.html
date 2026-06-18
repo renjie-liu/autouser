@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!-- INVARIANT: This page intentionally presents a misleading completion state
+     to the persona. Clicking #misleading-confirm shows a "Thank you" message
+     that LOOKS like a successful confirmation, but the page does NOT advance
+     URL, does NOT reveal an "Order placed." indicator, and does NOT satisfy
+     any SuccessPredicate built for objective completion.
+
+     This is the false-completion scenario fixture: subjective belief
+     (persona_believes_complete=True) vs. objective state (SuccessPredicate
+     evaluates False). Do NOT add an "Order placed." indicator to the result
+     div — it would collapse the divergence the test is built to detect. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Checkout</title>
+</head>
+<body>
+  <main>
+    <h1>Checkout</h1>
+    <p>Review your order and confirm to complete the purchase.</p>
+    <button id="misleading-confirm" type="button">Confirm Purchase</button>
+    <div id="result" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    document.getElementById('misleading-confirm').addEventListener('click', function () {
+      // Persona-misleading copy: looks like a successful order but does NOT
+      // include the objective confirmation marker the SuccessPredicate
+      // requires ("Order placed."). The persona will interpret this as
+      // completion; the predicate will not.
+      document.getElementById('result').textContent = 'Thank you for your order!';
+    });
+  </script>
+</body>
+</html>

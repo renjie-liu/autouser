@@ -1,0 +1,44 @@
+# Ground-truth benchmark for tests/fixtures/friction_page.html — the five
+# planted UX anti-patterns. Score a run against it with:
+#   autouser score --benchmark benchmarks/friction_page.yaml --log <friction_log.json>
+#   autouser score --benchmark benchmarks/friction_page.yaml --study <study.json>
+#
+# A flagged issue matches a planted issue when its category is in the
+# any-of `categories` allow-list (the classifier picks among defensible labels
+# for the same flow — category is the fuzziest signal), its severity is within
+# one tier of expected_severity, and any keyword appears in the issue
+# description or the persona's perspective (or feedback_subtype matches).
+# Keywords are the distinctive vocabulary of each pattern.
+name: friction_page
+url: friction_page.html
+issues:
+  - id: icon_button
+    categories: [labeling, copy, accessibility]
+    expected_severity: high
+    description: "Unlabeled icon-only primary CTA — no visible label or aria-label."
+    keywords: ["icon", "checkmark", "check mark", "unlabeled", "symbol", "no label", "what it does", "what that"]
+
+  - id: swapped_buttons
+    categories: [layout, navigation]
+    expected_severity: medium
+    description: "Continue/Cancel in reversed positions (Cancel left, Continue right)."
+    keywords: ["continue", "cancel", "button order", "reversed", "swapped", "wrong button", "left", "right"]
+
+  - id: phone_mismatch
+    categories: [error_recovery, copy, labeling]
+    expected_severity: high
+    description: "Placeholder shows (555) 123-4567 but validation requires E.164 (+1XXXXXXXXXX)."
+    keywords: ["format", "+1", "phone", "e.164", "e164", "placeholder", "555", "country code"]
+
+  - id: disabled_look_cta
+    categories: [feedback, layout, labeling]
+    expected_severity: high
+    description: "Functional 'Save Changes' button styled to look disabled (greyed out)."
+    keywords: ["disabled", "greyed", "grayed", "grey", "gray", "looks disabled", "inactive", "not clickable", "can't click", "cannot click"]
+
+  - id: silent_success
+    categories: [feedback]
+    expected_severity: medium
+    feedback_subtype: silent_success
+    description: "Save persists with no visible confirmation — silent success."
+    keywords: ["no confirmation", "nothing happened", "did it save", "not sure if", "no message", "no feedback", "did it work"]
