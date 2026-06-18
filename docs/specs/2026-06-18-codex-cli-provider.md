@@ -112,9 +112,12 @@ is shared, so the cap lives at the spawn point.
   `self._codex_client.complete(prompt, schema=schema)`, reusing the SAME schema
   already built for the `claude_code` path (`_PLAN_SCHEMA` / `_REFLECT_SCHEMA`).
   Retry/parse handling is shared.
-- `_DEFAULT_MODELS`: **no codex entry** — model defaults to `None` so codex uses
-  its own config default (approved decision). `CognitiveEngine(model=...)` or
-  `--model` still overrides.
+- `_DEFAULT_MODELS`: add a `"codex": None` entry. The `None` value makes the model
+  resolution (`model or _DEFAULT_MODELS.get(provider, ...)`) yield `None` for codex —
+  so no `--model` is emitted and codex uses its own config default — while the key's
+  *presence* lets `_detect_provider` honor `AUTOUSER_PROVIDER=codex` and lets the CLI's
+  `_PROVIDERS = sorted(_DEFAULT_MODELS)` offer `--provider codex`. An explicit
+  `CognitiveEngine(model=...)` / `--model` still overrides.
 - `_detect_provider`: codex stays **opt-in** — selected only via
   `AUTOUSER_PROVIDER=codex` or `CognitiveEngine(provider="codex")`, never
   auto-selected from key presence. Same posture as `claude_code`.

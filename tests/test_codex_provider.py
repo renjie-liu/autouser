@@ -200,6 +200,16 @@ async def test_complete_eagain_oserror_is_process_limit():
         await CodexProvider(runner=runner).complete("p", schema=_SCHEMA)
 
 
+async def test_complete_eacces_oserror_reraises():
+    """EACCES (e.g. a present-but-non-executable codex) is NOT the per-uid
+    ceiling — it must re-raise unchanged, not be mis-stamped as a process-limit
+    error (the false-localization the errno gate exists to prevent)."""
+    async def runner(argv, timeout):
+        raise PermissionError(errno.EACCES, "permission denied")
+    with pytest.raises(PermissionError):
+        await CodexProvider(runner=runner).complete("p", schema=_SCHEMA)
+
+
 async def test_complete_empty_output_raises_output_error():
     with pytest.raises(CodexOutputError):
         await CodexProvider(runner=_runner_writing("   ")).complete("p", schema=_SCHEMA)
