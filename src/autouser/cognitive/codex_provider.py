@@ -24,10 +24,13 @@ Boundary exposed in pieces for independent review/testing:
 from __future__ import annotations
 
 import asyncio
+import errno
+import json
 import logging
 import os
+import tempfile
 from dataclasses import dataclass
-from typing import Awaitable, Callable, Sequence
+from typing import Awaitable, Callable, Mapping, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -233,3 +236,95 @@ def parse_output(text: str) -> str:
     if not payload:
         raise CodexOutputError("`codex` wrote an empty final message")
     return payload
+
+
+# --- Provider ---------------------------------------------------------------
+
+
+_AUTH_HINTS = ("auth", "login", "credential", "unauthorized", "not logged in")
+
+
+class CodexProvider:
+    """One-shot caller for the local `codex` CLI.
+
+    Each complete() call spawns a fresh `codex exec` process with a read-only
+    sandbox and no approvals, so codex cannot touch the repo while producing a
+    structured action decision.
+    """
+
+    def __init__(
+        self,
+        *,
+        model: str | None = None,
+        timeout: float | None = None,
+        runner: SubprocessRunner | None = None,
+    ) -> None:
+        self._model = model
+        self._timeout = timeout if timeout is not None else _read_default_timeout()
+        self._runner: SubprocessRunner = runner or _default_runner
+
+    async def complete(self, prompt: str, *, schema: Mapping[str, object]) -> str:
+        """Run one `codex exec` and return the schema-constrained payload string.
+
+        Payload-to-domain-model parsing is the caller's responsibility.
+        """
+        schema_json = json.dumps(schema, separators=(",", ":"))
+        with tempfile.TemporaryDirectory(prefix="autouser-codex-") as tmpdir:
+            schema_path = os.path.join(tmpdir, "schema.json")
+            output_path = os.path.join(tmpdir, "message.txt")
+            with open(schema_path, "w", encoding="utf-8") as f:
+                f.write(schema_json)
+
+            argv = build_command(
+                prompt,
+                schema_path=schema_path,
+                output_path=output_path,
+                model=self._model,
+            )
+            try:
+                async with _spawn_gate():
+                    completed = await self._runner(argv, self._timeout)
+            except FileNotFoundError as exc:
+                raise CodexNotFoundError(
+                    "`codex` binary not on PATH. Install the Codex CLI and run "
+                    "`codex login` once to authenticate."
+                ) from exc
+            except asyncio.TimeoutError as exc:
+                # MUST precede `except OSError`: asyncio.TimeoutError IS the
+                # builtin TimeoutError (an OSError subclass) in 3.11+.
+                raise CodexTimeoutError(
+                    f"`codex` did not return within {self._timeout:.0f}s; retry "
+                    "or raise AUTOUSER_CODEX_TIMEOUT if this recurs"
+                ) from exc
+            except OSError as exc:
+                # fork() refused at the per-uid ceiling raises EPERM/EAGAIN
+                # (PermissionError/BlockingIOError). Gate on errno, not class,
+                # so EACCES (non-executable codex) re-raises unchanged.
+                if exc.errno in (errno.EPERM, errno.EAGAIN):
+                    raise CodexProcessLimitError(_PROCESS_LIMIT_MESSAGE) from exc
+                raise
+
+            if completed.returncode != 0:
+                if _is_process_limit_signature(completed.stderr):
+                    raise CodexProcessLimitError(
+                        f"{_PROCESS_LIMIT_MESSAGE} stderr={completed.stderr!r}"
+                    )
+                stderr_lc = completed.stderr.lower()
+                if any(hint in stderr_lc for hint in _AUTH_HINTS):
+                    raise CodexAuthError(
+                        "`codex` CLI is not authenticated. Run `codex login`. "
+                        f"stderr={completed.stderr!r}"
+                    )
+                raise CodexInvocationError(
+                    f"`codex` exited with code {completed.returncode}. "
+                    f"stderr={completed.stderr!r}"
+                )
+
+            try:
+                with open(output_path, "r", encoding="utf-8") as f:
+                    message = f.read()
+            except OSError as exc:
+                raise CodexOutputError(
+                    "`codex` exited 0 but wrote no final-message file"
+                ) from exc
+            return parse_output(message)
