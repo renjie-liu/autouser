@@ -167,7 +167,7 @@ async def _run_command(args: argparse.Namespace) -> int:
     if args.perception == PerceptionMode.COMPUTER_USE and provider != "anthropic":
         raise CliConfigError(
             "--perception computer_use requires the anthropic provider "
-            "(vision API); it does not support claude_code or gemini"
+            "(vision API); no other provider is supported"
         )
     personas = _resolve_personas(args.persona or ["maria"])
     task_spec = build_task_spec(args)
@@ -280,7 +280,7 @@ async def _study_command(args: argparse.Namespace) -> int:
     if args.perception == PerceptionMode.COMPUTER_USE and provider != "anthropic":
         raise CliConfigError(
             "--perception computer_use requires the anthropic provider "
-            "(vision API); it does not support claude_code or gemini"
+            "(vision API); no other provider is supported"
         )
     if args.seeds < 1:
         raise CliConfigError("--seeds must be at least 1")
