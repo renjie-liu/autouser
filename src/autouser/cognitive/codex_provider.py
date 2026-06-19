@@ -162,13 +162,16 @@ def build_command(
     """Build the argv for one `codex exec` invocation. Pure function.
 
     `model` is omitted when None so codex uses its own ~/.codex/config.toml
-    default. The `--` terminator makes the prompt unambiguously positional.
+    default. `--ephemeral` keeps this one-shot call from persisting a session
+    file (task + DOM context) to disk — the analog of `claude_code`'s
+    `--no-session-persistence`. The `--` terminator makes the prompt positional.
     """
     argv = ["codex", "exec"]
     if model:
         argv += ["--model", model]
     argv += [
         "--skip-git-repo-check",
+        "--ephemeral",
         "--output-schema", schema_path,
         "--output-last-message", output_path,
         "-c", 'sandbox_mode="read-only"',

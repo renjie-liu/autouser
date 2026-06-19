@@ -44,6 +44,7 @@ New module `src/autouser/cognitive/codex_provider.py`, mirroring
 codex exec
   [--model <model>]                 # omitted when model is None -> codex config default
   --skip-git-repo-check
+  --ephemeral
   --output-schema <schema_path>
   --output-last-message <output_path>
   -c sandbox_mode="read-only"
@@ -57,6 +58,8 @@ Guardrails (the analog of `claude_code`'s `--tools ""` + `--no-session-persisten
 - `approval_policy="never"` — codex never blocks on an interactive approval
   prompt (one-shot, non-interactive).
 - `--skip-git-repo-check` — runs regardless of CWD.
+- `--ephemeral` — no session file (task + DOM context) is persisted to disk; the
+  `--no-session-persistence` analog.
 - `--` terminates option parsing so the prompt is unambiguously positional.
 
 ### 2. Subprocess runner (injectable)

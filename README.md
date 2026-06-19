@@ -57,8 +57,9 @@ export AUTOUSER_BROWSER_EXECUTABLE=/path/to/cached/chrome
 
 The cognitive engine supports four providers. Auto-detection order (CLI):
 explicit `--provider` flag → `AUTOUSER_PROVIDER` env → `ANTHROPIC_API_KEY` →
-`GEMINI_API_KEY` → local `claude` CLI on PATH. (`codex` is opt-in only,
-never auto-selected, mirroring `claude_code`.)
+`GEMINI_API_KEY` → local `claude` CLI on PATH. `codex` is explicit opt-in only
+(`--provider codex` / `AUTOUSER_PROVIDER=codex`) — unlike `claude_code`, it is
+never the no-key auto-fallback.
 
 | Provider | Needs | Notes |
 |----------|-------|-------|

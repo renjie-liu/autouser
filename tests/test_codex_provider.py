@@ -24,6 +24,8 @@ def test_build_command_has_guardrails_and_paths():
     assert argv[argv.index("--output-last-message") + 1] == "/tmp/o.txt"
     assert 'sandbox_mode="read-only"' in argv
     assert 'approval_policy="never"' in argv
+    # one-shot: no session file persisted to disk (claude_code --no-session-persistence analog)
+    assert "--ephemeral" in argv
     # prompt is positional after the `--` option terminator
     assert argv[-2] == "--"
     assert argv[-1] == "hello"
@@ -36,6 +38,7 @@ def test_build_command_includes_model_when_given():
     assert argv[argv.index("--model") + 1] == "o3"
     # guardrails must remain present even when a model is supplied
     assert "--skip-git-repo-check" in argv
+    assert "--ephemeral" in argv
     assert 'sandbox_mode="read-only"' in argv
     assert 'approval_policy="never"' in argv
 
