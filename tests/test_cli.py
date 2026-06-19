@@ -201,6 +201,21 @@ def test_computer_use_engine_receives_model(monkeypatch):
     assert captured["engine"].model == "claude-opus-4-8"
 
 
+def test_computer_use_rejects_non_anthropic_provider_without_stale_list():
+    """computer_use perception is anthropic-only. codex is a valid provider but
+    must be rejected, and the message must not enumerate a stale provider list."""
+    import asyncio
+
+    from autouser.cli import _run_command
+
+    args = build_parser().parse_args([
+        "run", "--url", "x", "--task", "t", "--criteria", "c",
+        "--provider", "codex", "--perception", "computer_use",
+    ])
+    with pytest.raises(CliConfigError, match="requires the anthropic provider"):
+        asyncio.run(_run_command(args))
+
+
 # --- personas ----------------------------------------------------------------
 
 
